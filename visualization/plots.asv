@@ -1,0 +1,104 @@
+function [] = plots(plotData, model)
+    
+    %% unpack plotData object
+    target = plotData.target;
+    state = plotData.state;
+    input = plotData.input;
+    t_sim = plotData.t_sim;
+    replannedPaths = plotData.replannedPaths;
+    replan_idx = plotData.replan_idx;
+    obstacles = plotData.obstacles;
+    
+    %% state plots
+        figure; hold on;                               % roll, pitch, yaw
+    plot(t_sim, rad2deg(state(1,:)),'r-')
+    plot(t_sim, rad2deg(state(2,:)),'g-')
+    plot(t_sim, rad2deg(state(3,:)),'b-')
+    plot(t_sim,rad2deg(target(1))*ones(numel(t_sim),1), 'r--')
+    plot(t_sim,rad2deg(target(2))*ones(numel(t_sim),1), 'g--')
+    plot(t_sim,rad2deg(target(3))*ones(numel(t_sim),1), 'b--')
+    xlabel('Time (s)'); ylabel('Orientation (deg)')
+    legend('Roll', 'Pitch', 'Yaw','Roll_d','Pitch_d','Yaw_d')
+    hold off
+    
+    figure; hold on;                               % position
+    plot(t_sim, state(4,:),'r-')
+    plot(t_sim, state(5,:),'g-')
+    plot(t_sim, state(6,:),'b-')
+    plot(t_sim,target(4)*ones(numel(t_sim),1), 'r--')
+    plot(t_sim,target(5)*ones(numel(t_sim),1), 'g--')
+    plot(t_sim,target(6)*ones(numel(t_sim),1), 'b--')
+    legend('x','y','z','x_d','y_d','z_d')
+    xlabel('Time (s)'); ylabel('Position (m)')
+    hold off
+    
+
+    
+    figure; hold on;                               % velocity
+    plot(t_sim, state(10,:),'r-')
+    plot(t_sim, state(11,:),'g-')
+    plot(t_sim, state(12,:),'b-')
+    plot(t_sim,target(1)*ones(numel(t_sim),1), 'r--')
+    plot(t_sim,target(2)*ones(numel(t_sim),1), 'g--')
+    plot(t_sim,target(3)*ones(numel(t_sim),1), 'b--')
+    xlabel('Time (s)'); ylabel('Velocity (m/s)')
+    legend('v_x', 'v_y', 'v_z','v_{x,d}','v_{y,d}','v_{z,d}')
+    hold off
+    
+    figure; hold on;                               % velocity
+    plot(t_sim, state(10,:),'r-')
+    plot(t_sim, state(11,:),'g-')
+    plot(t_sim, state(12,:),'b-')
+    plot(t_sim,target(1)*ones(numel(t_sim),1), 'r--')
+    plot(t_sim,target(2)*ones(numel(t_sim),1), 'g--')
+    plot(t_sim,target(3)*ones(numel(t_sim),1), 'b--')
+    xlabel('Time (s)'); ylabel('Velocity (m/s)')
+    legend('v_x', 'v_y', 'v_z','v_{x,d}','v_{y,d}','v_{z,d}')
+    hold off
+    
+    %% input plots
+    figure; hold on;
+    plot(t_sim(1:end-1), input(1,:),'r-')
+%     plot(t_sim(1:end-1), input(2,:),'g-')
+%     plot(t_sim(1:end-1), input(3,:),'b-')    
+    plot(t_sim(1:end-1), model.MaxThrust*ones(length(t_sim(1:end-1)),1),'k--')
+    plot(t_sim(1:end-1), -model.MaxThrust*ones(length(t_sim(1:end-1)),1),'k--')
+    legend('F_x','F_{max}')
+    xlabel('Time (s)')
+    ylabel('Force (N)')
+    hold off;
+
+    figure; hold on;
+    plot(t_sim(1:end-1), input(4,:),'r-')
+    plot(t_sim(1:end-1), input(5,:),'g-')
+    plot(t_sim(1:end-1), input(6,:),'b-')    
+    plot(t_sim(1:end-1), model.MaxTorque*ones(length(t_sim(1:end-1)),1),'k--')
+    plot(t_sim(1:end-1), -model.MaxTorque*ones(length(t_sim(1:end-1)),1),'k--')
+    legend('\tau_x','\tau_y','\tau_z','\tau_{max}')
+    xlabel('Time (s)')
+    ylabel('Torque (N)')
+    hold off;
+    
+    %% replanning
+    figure; hold on; grid on;
+    for i = 1:numel(replannedPaths)
+        xPath = replannedPaths{i}(1,:);
+        yPath = replannedPaths{i}(2,:);
+        zPath = replannedPaths{i}(3,:);
+        plot3(xPath,yPath,zPath)
+    end
+        
+    % plot obstacles
+    if (~isempty(obstacles))
+        for i = 1:numel(obstacles(1,:))
+            [X,Y,Z] = sphere;
+            obs = surf(obstacles(4,i)*X + obstacles(1,i), ...
+                 obstacles(4,i)*Y + obstacles(2,i), ...
+                 obstacles(4,i)*Z + obstacles(3,i));
+            set(obs,'FaceColor','red','FaceAlpha',0.5,'EdgeAlpha',0.01)
+        end
+        axis equal;
+        xlabel('x (m)'); ylabel('y (m)'); zlabel('z (m)')
+        hold off;
+    end
+end
